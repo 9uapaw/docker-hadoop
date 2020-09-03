@@ -53,6 +53,8 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
     addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.bind-host 0.0.0.0
     addProperty /etc/hadoop/yarn-site.xml yarn.nodemanager.bind-host 0.0.0.0
     addProperty /etc/hadoop/yarn-site.xml yarn.timeline-service.bind-host 0.0.0.0
+    addProperty /etc/hadoop/yarn-site.xml yarn.log-aggregation.file-formats IFile,TFile
+    addProperty /etc/hadoop/yarn-site.xml yarn.log-aggregation.file-controller.IFile.class org.apache.hadoop.yarn.logaggregation.filecontroller.ifile.LogAggregationIndexedFileController
 
     # MAPRED
     addProperty /etc/hadoop/mapred-site.xml yarn.nodemanager.bind-host 0.0.0.0

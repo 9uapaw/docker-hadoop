@@ -1,4 +1,4 @@
-FROM bde2020/hadoop-base:2.0.0-hadoop3.2.1-java8
+FROM bde2020/hadoop-base:self-dev
 
 MAINTAINER Ivan Ermilov <ivan.s.ermilov@gmail.com>
 
@@ -12,5 +12,6 @@ ADD run.sh /run.sh
 RUN chmod a+x /run.sh
 
 EXPOSE 8188
+RUN rm -rf /opt/hadoop-$HADOOP_VERSION/share/
 
 CMD ["/run.sh"]
