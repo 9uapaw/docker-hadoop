@@ -58,6 +58,19 @@ if [ "$MULTIHOMED_NETWORK" = "1" ]; then
 
     # MAPRED
     addProperty /etc/hadoop/mapred-site.xml yarn.nodemanager.bind-host 0.0.0.0
+    
+    if [ "$HADOCK_RMHA_ENABLED" = "1" ]; then
+      echo "ResourceManager High Availability is enabled"
+      addProperty /etc/hadoop/yarn-site.xml hadoop.zk.address zookeeper 
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.ha.enabled true
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.cluster-id hadock1
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.ha.rm-ids resourcemanager,resourcemanager2 
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.hostname.resourcemanager resourcemanager
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.hostname.resourcemanager2 resourcemanager2
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.webapp.address.resourcemanager resourcemanager:8088
+      addProperty /etc/hadoop/yarn-site.xml yarn.resourcemanager.webapp.address.resourcemanager2 resourcemanager2:8088
+    fi
+
 fi
 
 if [ -n "$GANGLIA_HOST" ]; then

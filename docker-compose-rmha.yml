@@ -1,0 +1,131 @@
+version: "3"
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:self-dev
+    container_name: namenode
+    restart: always
+    ports:
+      - 9870:9870
+      - 9000:9000
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+      - $HADOOP_LOCAL_JAR:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      - CLUSTER_NAME=test
+    env_file:
+      - ./hadoop.env
+
+  datanode:
+    image: bde2020/hadoop-datanode:self-dev
+    container_name: datanode
+    restart: always
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      SERVICE_PRECONDITION: "namenode:9870"
+    env_file:
+      - ./hadoop.env
+  
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:self-dev
+    container_name: resourcemanager
+    restart: always
+    ports:
+      - 8088:8088
+      - 9999:9999
+    volumes:
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 zookeeper:2181"
+    env_file:
+      - ./hadoop.env
+      - ./rmha.env
+
+  resourcemanager2:
+    image: bde2020/hadoop-resourcemanager:self-dev
+    container_name: resourcemanager2
+    restart: always
+    ports:
+      - 8089:8088
+      - 9998:9999
+    volumes:
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 zookeeper:2181"
+    env_file:
+      - ./hadoop.env
+      - ./rmha.env
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:self-dev
+    container_name: nodemanager
+    restart: always
+    ports:
+      - 8042:8042
+      - 9006:9006
+    volumes:
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager2:
+    image: bde2020/hadoop-nodemanager:self-dev
+    container_name: nodemanager2
+    restart: always
+    ports:
+      - 8043:8042
+      - 9007:9006
+    volumes:
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+
+  nodemanager3:
+    image: bde2020/hadoop-nodemanager:self-dev
+    container_name: nodemanager3
+    restart: always
+    ports:
+      - 8044:8042
+      - 9008:9006
+    volumes:
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop.env
+  
+  historyserver:
+    image: bde2020/hadoop-historyserver:self-dev
+    container_name: historyserver
+    restart: always
+    ports:
+      - 8188:8188
+      - 19888:19888
+      - 9005:9999
+      - 9001:9998
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+      - ${HADOOP_LOCAL_JAR}:/opt/hadoop-$HADOOP_VERSION/share
+    env_file:
+      - ./hadoop.env
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    restart: always
+    env_file:
+      - ./hadoop.env
+      - ./rmha.env
+  
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+  hadoop_historyserver:
