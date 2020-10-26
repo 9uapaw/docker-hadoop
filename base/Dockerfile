@@ -22,18 +22,19 @@ RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS
 
 RUN gpg --import KEYS
 
-ENV HADOOP_VERSION 3.4.0-SNAPSHOT
-ENV HADOOP_TAR hadoop-3.4.0-SNAPSHOT.tar.gz
-ADD $HADOOP_TAR /opt/
+ADD hadoop.tar.gz /opt/
+RUN mkdir -p /opt/hadoop
+RUN mv /opt/hadoop*/* /opt/hadoop
 
-RUN ln -s /opt/hadoop-$HADOOP_VERSION/etc/hadoop /etc/hadoop
-RUN ln -s /opt/hadoop-$HADOOP_VERSION /hadoop
 
-RUN mkdir /opt/hadoop-$HADOOP_VERSION/logs
+RUN ln -s /opt/hadoop/etc/hadoop /etc/hadoop
+RUN ln -s /opt/hadoop /hadoop
+
+RUN mkdir -p /opt/hadoop/logs
 
 RUN mkdir /hadoop-data
 
-ENV HADOOP_HOME=/opt/hadoop-$HADOOP_VERSION
+ENV HADOOP_HOME=/opt/hadoop
 ENV HADOOP_CONF_DIR=/etc/hadoop
 ENV MULTIHOMED_NETWORK=1
 ENV USER=root

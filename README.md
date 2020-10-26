@@ -1,67 +1,141 @@
-[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/big-data-europe/Lobby)
 
-# Changes
-This is a modified version of big-data-europe hadoop in docker project, focused on self development.
+# Table of Contents
 
-# Hadoop Docker
+1.  [Hadock](#org8e7d722)
+    1.  [Getting started](#orgc6b400c)
+    2.  [New improvements](#org297ecf6)
+        1.  [Jar files mounted as volume](#org867d819)
+        2.  [Remote debugging enabled](#orge695184)
+        3.  [Optional ResourceManager High Availability](#orgc57bc88)
+        4.  [Extended cluster with additional nodes](#orgef39964)
 
-## Supported Hadoop Versions
-See repository branches for supported hadoop versions
 
-## Quick Start
-Set ENV Variables:
-```
-HADOOP_LOCAL_JAR=$PATH_TO_HADOOP_JARS
-HADOOP_VERSION=3.4.0-SNAPSHOT # current version of hadoop trunk
-```
+<a id="org8e7d722"></a>
 
-To deploy an example HDFS cluster, run:
-```
-  docker-compose up
-```
+# Hadock
 
-Run example wordcount job:
-```
-  make wordcount
-```
+Hadock is a fork of [GitHub - big-data-europe/docker-hadoop: Apache Hadoop docker image](https://github.com/big-data-europe/docker-hadoop), enhanced for self development. For basic usage, please refer to [README.md at big-data-europe/docker-hadoop](https://github.com/big-data-europe/docker-hadoop/blob/master/README.md).
 
-Or deploy in swarm:
-```
-docker stack deploy -c docker-compose-v3.yml hadoop
-```
 
-`docker-compose` creates a docker network that can be found by running `docker network list`, e.g. `dockerhadoop_default`.
+<a id="orgc6b400c"></a>
 
-Run `docker network inspect` on the network (e.g. `dockerhadoop_default`) to find the IP the hadoop interfaces are published on. Access these interfaces with the following URLs:
+## Getting started
 
-* Namenode: http://<dockerhadoop_IP_address>:9870/dfshealth.html#tab-overview
-* History server: http://<dockerhadoop_IP_address>:8188/applicationhistory
-* Datanode: http://<dockerhadoop_IP_address>:9864/
-* Nodemanager: http://<dockerhadoop_IP_address>:8042/node
-* Resource manager: http://<dockerhadoop_IP_address>:8088/
+1.  Copy/hard link a hadoop distribution inside **base** directory as **hadoop.tar.gz**. The content of the directory should look like:
+    
+    > .rw-r&#x2013;r&#x2013; root root   963 B  Wed Oct 21 17:23:22 2020  Dockerfile   
+    > .rw-r&#x2013;r&#x2013; root root   5.1 KB Wed Oct 21 18:25:18 2020  entrypoint.sh
+    > .rw-r&#x2013;r&#x2013; root root 434.4 MB Tue Jul 14 08:59:46 2020  hadoop.tar.gz
+2.  Build the docker images.
+    
+        make
+3.  Expose the directory of the hadoop jar files on the local machine.
+    
+        export HADOOP_LOCAL_JAR=
+4.  Start the containers via docker-compose
+    
+        docker-compose up
 
-## Configure Environment Variables
 
-The configuration parameters can be specified in the hadoop.env file or as environmental variables for specific services (e.g. namenode, datanode etc.):
-```
-  CORE_CONF_fs_defaultFS=hdfs://namenode:8020
-```
+<a id="org297ecf6"></a>
 
-CORE_CONF corresponds to core-site.xml. fs_defaultFS=hdfs://namenode:8020 will be transformed into:
-```
-  <property><name>fs.defaultFS</name><value>hdfs://namenode:8020</value></property>
-```
-To define dash inside a configuration parameter, use triple underscore, such as YARN_CONF_yarn_log___aggregation___enable=true (yarn-site.xml):
-```
-  <property><name>yarn.log-aggregation-enable</name><value>true</value></property>
-```
+## New improvements
 
-The available configurations are:
-* /etc/hadoop/core-site.xml CORE_CONF
-* /etc/hadoop/hdfs-site.xml HDFS_CONF
-* /etc/hadoop/yarn-site.xml YARN_CONF
-* /etc/hadoop/httpfs-site.xml HTTPFS_CONF
-* /etc/hadoop/kms-site.xml KMS_CONF
-* /etc/hadoop/mapred-site.xml  MAPRED_CONF
 
-If you need to extend some other configuration file, refer to base/entrypoint.sh bash script.
+<a id="org867d819"></a>
+
+### Jar files mounted as volume
+
+This feature allows significantly faster development cycle. Simply compile hadoop on your local machine and restart the cluster to have your changes be reflected in Hadock.
+The **HADOOP\_LOCAL\_JAR** is generally the **$HADOOP\_HOME/hadoop-dist/target/hadoop-$VERSION/share**.
+
+
+<a id="orge695184"></a>
+
+### Remote debugging enabled
+
+The remote debugging is enabled by setting **$HADOOP\_OPTS**:
+
+    export HADOOP_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=9999
+
+Each role has its own debugging port, which is exposed by Docker as the following by default:
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-right" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left">Container</th>
+<th scope="col" class="org-right">Port</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td class="org-left">resourcemanager</td>
+<td class="org-right">9999</td>
+</tr>
+
+
+<tr>
+<td class="org-left">nodemanager</td>
+<td class="org-right">9998</td>
+</tr>
+
+
+<tr>
+<td class="org-left">nodemanager2</td>
+<td class="org-right">9997</td>
+</tr>
+
+
+<tr>
+<td class="org-left">nodemanager3</td>
+<td class="org-right">9996</td>
+</tr>
+
+
+<tr>
+<td class="org-left">apphistoryserver</td>
+<td class="org-right">9995</td>
+</tr>
+
+
+<tr>
+<td class="org-left">jobhistoryserver</td>
+<td class="org-right">9994</td>
+</tr>
+</tbody>
+</table>
+
+In order to change the debug port of a component, overwrite env variable:
+
+    export RESOURCEMANAGER_DEBUG=9001
+
+> The remote debugging could be disabled by deleting the appropriate DEBUG fields in **hadoop.env.**
+
+
+<a id="orgc57bc88"></a>
+
+### Optional ResourceManager High Availability
+
+In order to enable RMHA, run Hadock with:
+
+    docker-compose -f docker-compose-rmha.yml up
+
+> 
+> 
+> WARNING: RMHA requires additional resources (as a zookeeper instance and a second ResourceManager instance is added)
+
+
+<a id="orgef39964"></a>
+
+### Extended cluster with additional nodes
+
+The cluster consists of two additional nodes, which makes it a 3-node cluster. Feel free to adjust it by deleting/copying the NodeManagers appropriately in **docker-compose.yml**.
+
