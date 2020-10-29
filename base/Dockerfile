@@ -1,4 +1,4 @@
-FROM debian:9
+FROM ubuntu:16.04
 
 MAINTAINER Ivan Ermilov <ivan.s.ermilov@gmail.com>
 MAINTAINER Giannis Mouchakis <gmouchakis@iit.demokritos.gr>
@@ -17,10 +17,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     && rm -rf /var/lib/apt/lists/*
       
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
-
-RUN curl -O https://dist.apache.org/repos/dist/release/hadoop/common/KEYS
-
-RUN gpg --import KEYS
 
 ADD hadoop.tar.gz /opt/
 RUN mkdir -p /opt/hadoop

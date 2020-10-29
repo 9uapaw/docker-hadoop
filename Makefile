@@ -7,7 +7,8 @@ build:
 	docker build -t bde2020/hadoop-datanode:self-dev ./datanode
 	docker build -t bde2020/hadoop-resourcemanager:self-dev ./resourcemanager
 	docker build -t bde2020/hadoop-nodemanager:self-dev ./nodemanager
-	docker build -t bde2020/hadoop-historyserver:self-dev ./historyserver
+	docker build -t bde2020/hadoop-app-historyserver:self-dev ./app_historyserver
+	docker build -t bde2020/hadoop-job-historyserver:self-dev ./job_historyserver
 	docker build -t bde2020/hadoop-submit:self-dev ./submit
 
 wordcount:
